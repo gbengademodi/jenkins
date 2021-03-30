@@ -1,112 +1,23 @@
+
 pipeline {
+   agent any
 
-    agent any
-
-     triggers {
-
-        pollSCM "* * * * *"
+   stages {
+      stage('Build')  {
+        steps {
+          echo 'Building...'
+          echo "Running ${env.BUILD_ID} ${env.BUILD_DISPLAY_NAME} on ${env.NODE_NAME} and JOB ${env.JOB_NAME}"
+        }
      }
-  environment { 
-
-      GITHUB = credentials "githubCredentials"}
-
-
-      }
-
-    stages {
-
-        stages ('checkout')  {
-
-           steps{
-
-              checkout SCM
-           }
-        }
-
-
-        stage('Build') {
-
-            steps {
-
-               sh 'mvn -b-DskipTestsclean package'
-                
-            }
-        }
-        stage('Test') {
-
-            steps {
-
-                sh 'mvn test'
-                
-            }
-
-
-            test {
-
-               always {
-
-                 junit  'target/surefire-reports/xml
-               }
-            }
-
-
-
-        
-        stage  { 'Build Docker Image') {
-
-                          when (
-
-                              branch 'master'
-
-                    )
-
-
-        
-            steps {
-                echo *** Building simple -java-maven-and Docker Image ***
-                script {
-
-                    app = docker-build {gbengademodi/jenkinsfile}
-                }
-            }
-
-            Stage {"Push Docker Image"} {
-
-                             when {
-
-                             branch 'master'
-
-                           
-                       }
-
-                       steps {
-
-                          echo '' - pushing simple-java-maven-app Docker Image-'
-
-                          SCRIPT {
-
-                          GIT_COMMIT_MASH - sh (script: "git log - n 1 --pretty=format: '/M' ",returnstdout: true)
-                          SHORT_COMMIT ="$(GIT_COMMIT_HASH[0..?/}"
-                          docker.withregistry/ http://registry.hub.docker.com", 'dockerhubcredentials') {
-
-                              app.push "$SHORT_COMMIT" i
-
-                              app.push{"latest"}
-                          }
-                          }
-
-                       }
-
-stage {' Remove local images') {
-	
-	   steps {
-
-	      echo '*** Delete the local docker images***"
-	      sh ("docker rmi -f gbengademodi/jenkinsfile latest { })") 
-	      sh ("docker rmi -f gbengademodi/jenkinsfile :SHORT COMMIT{ })")
-
-
-            }
-        }
-    }
+     stage('Test') {
+       steps {
+         echo 'Testing...'
+       }
+     }
+     stage ('Deploy') {
+       steps {
+         echo 'Deploying...'
+     }
+   }
+  }
 }
